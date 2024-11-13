@@ -23,7 +23,7 @@
 //!
 //! In your leptos project, use:
 //! ```
-//! use leptos::*;
+//! use leptos::prelude::*;
 //! use leptos_icons::*;
 //!
 //! # #[cfg(target_arch = "wasm32")]
@@ -33,82 +33,71 @@
 //! ```
 //! [__Complete examples__](https://github.com/carloskiki/leptos-icons/tree/main/examples) are available on github.
 
-use leptos::*;
+use leptos::{prelude::*, svg};
 
 /// The Icon component.
 #[component]
 pub fn Icon(
     /// The icon to render.
     #[prop(into)]
-    icon: MaybeSignal<icondata_core::Icon>,
+    icon: Signal<icondata_core::Icon>,
     /// The width of the icon (horizontal side length of the square surrounding the icon). Defaults to "1em".
     #[prop(into, optional)]
-    width: MaybeProp<TextProp>,
+    width: MaybeProp<String>,
     /// The height of the icon (vertical side length of the square surrounding the icon). Defaults to "1em".
     #[prop(into, optional)]
-    height: MaybeProp<TextProp>,
+    height: MaybeProp<String>,
     /// HTML class attribute.
     #[prop(into, optional)]
-    class: MaybeProp<TextProp>,
+    class: MaybeProp<String>,
     /// HTML style attribute.
     #[prop(into, optional)]
-    style: MaybeProp<TextProp>,
+    style: MaybeProp<String>,
 ) -> impl IntoView
 where
 {
     let svg = move || {
         let icon = icon.get();
-        let mut svg = svg::svg();
-        if let Some(classes) = class.get() {
-            svg = svg.classes(classes.get());
-        }
-        let mut svg = match (style.get(), icon.style) {
-            (Some(a), Some(b)) => svg.attr("style", format!("{b} {}", a.get())),
-            (Some(a), None) => svg.attr("style", a.get()),
-            (None, Some(b)) => svg.attr("style", b),
-            (None, None) => svg,
+        let svg = svg::svg();
+        let svg = svg.class(class.get());
+
+        let style = match (style.get(), icon.style) {
+            (Some(a), Some(b)) => Some(Oco::from(format!("{b} {}", a))),
+            (Some(a), None) => Some(Oco::from(a)),
+            (None, Some(b)) => Some(Oco::from(b)),
+            (None, None) => None,
         };
-        if let Some(x) = icon.x {
-            svg = svg.attr("x", x);
-        }
-        if let Some(y) = icon.y {
-            svg = svg.attr("y", y);
-        }
+        let svg = svg.attr("style", style);
+        let svg = svg.attr("x", icon.x);
+        let svg = svg.attr("y", icon.y);
+
         // The style set by the user overrides the style set by the icon.
         // We ignore the width and height attributes of the icon, even if the user hasn't specified any.
-        svg = svg.attr(
+        let svg = svg.attr(
             "width",
-            Attribute::String(match (width.get(), icon.width) {
-                (Some(a), _) => Oco::from(a.get()),
+            match (width.get(), icon.width) {
+                (Some(a), _) => Oco::from(a),
                 _ => Oco::from("1em"),
-            }),
+            },
         );
-        svg = svg.attr(
+        let svg = svg.attr(
             "height",
-            Attribute::String(match (height.get(), icon.height) {
-                (Some(a), _) => Oco::from(a.get()),
+            match (height.get(), icon.height) {
+                (Some(a), _) => Oco::from(a),
                 _ => Oco::from("1em"),
-            }),
+            },
         );
-        if let Some(view_box) = icon.view_box {
-            svg = svg.attr("viewBox", view_box);
-        }
-        if let Some(stroke_linecap) = icon.stroke_linecap {
-            svg = svg.attr("stroke-linecap", stroke_linecap);
-        }
-        if let Some(stroke_linejoin) = icon.stroke_linejoin {
-            svg = svg.attr("stroke-linejoin", stroke_linejoin);
-        }
-        if let Some(stroke_width) = icon.stroke_width {
-            svg = svg.attr("stroke-width", stroke_width);
-        }
-        if let Some(stroke) = icon.stroke {
-            svg = svg.attr("stroke", stroke);
-        }
-        svg = svg.attr("fill", icon.fill.unwrap_or("currentColor"));
-        svg = svg.attr("role", "graphics-symbol");
-        svg = svg.inner_html(icon.data);
+
+        let svg = svg.attr("viewBox", icon.view_box);
+        let svg = svg.attr("stroke-linecap", icon.stroke_linecap);
+        let svg = svg.attr("stroke-linejoin", icon.stroke_linejoin);
+        let svg = svg.attr("stroke-width", icon.stroke_width);
+        let svg = svg.attr("stroke", icon.stroke);
+        let svg = svg.attr("fill", icon.fill.unwrap_or("currentColor"));
+        let svg = svg.attr("role", "graphics-symbol");
+        let svg = svg.inner_html(icon.data);
         svg
     };
-    IntoView::into_view(svg)
+
+    svg
 }
