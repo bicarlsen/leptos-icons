@@ -33,7 +33,7 @@
 //! ```
 //! [__Complete examples__](https://github.com/carloskiki/leptos-icons/tree/main/examples) are available on github.
 
-use leptos::{prelude::*, svg};
+use leptos::{prelude::*, svg, tachys::view::ToTemplate};
 
 /// The Icon component.
 #[component]
@@ -66,5 +66,72 @@ pub fn Icon(
             .attr("fill", icon.fill.unwrap_or("currentColor"))
             .attr("role", "graphics-symbol")
             .inner_html(icon.data)
+    }
+}
+
+/// The Icon component.
+#[component]
+pub fn StaticIcon(
+    /// The icon to render.
+    icon: icondata_core::Icon,
+    #[prop(optional)] style: Option<String>,
+    #[prop(optional)] width: Option<String>,
+    #[prop(optional)] height: Option<String>,
+) -> impl IntoView {
+    svg::svg()
+        .style(match (style, icon.style) {
+            (Some(a), Some(b)) => Some(format!("{b} {a}")),
+            (Some(a), None) => Some(a),
+            (None, Some(b)) => Some(b.to_string()),
+            _ => None,
+        })
+        .attr("x", icon.x)
+        .attr("y", icon.y)
+        .attr("width", width.unwrap_or_else(|| "1em".to_string()))
+        .attr("height", height.unwrap_or_else(|| "1em".to_string()))
+        .attr("viewBox", icon.view_box)
+        .attr("stroke-linecap", icon.stroke_linecap)
+        .attr("stroke-linejoin", icon.stroke_linejoin)
+        .attr("stroke-width", icon.stroke_width)
+        .attr("stroke", icon.stroke)
+        .attr("fill", icon.fill.unwrap_or("currentColor"))
+        .attr("role", "graphics-symbol")
+        .inner_html(icon.data)
+} 
+
+/// The Icon component.
+#[component]
+pub fn IconTemplate(
+    /// The icon to render.
+    #[prop(into)]
+    icon: Signal<icondata_core::Icon>,
+    #[prop(into, optional)] style: MaybeProp<String>,
+    #[prop(into, optional)] width: MaybeProp<String>,
+    #[prop(into, optional)] height: MaybeProp<String>,
+) -> impl IntoView + ToTemplate {
+    move || {
+        let icon = icon.get();
+        svg::svg()
+            .style(match (style.get(), icon.style) {
+                (Some(a), Some(b)) => Some(format!("{b} {a}")),
+                (Some(a), None) => Some(a),
+                (None, Some(b)) => Some(b.to_string()),
+                _ => None,
+            })
+            .attr("x", icon.x)
+            .attr("y", icon.y)
+            .attr("width", width.get().unwrap_or_else(|| "1em".to_string()))
+            .attr("height", height.get().unwrap_or_else(|| "1em".to_string()))
+            .attr("viewBox", icon.view_box)
+            .attr("stroke-linecap", icon.stroke_linecap)
+            .attr("stroke-linejoin", icon.stroke_linejoin)
+            .attr("stroke-width", icon.stroke_width)
+            .attr("stroke", icon.stroke)
+            .attr("fill", icon.fill.unwrap_or("currentColor"))
+            .attr("role", "graphics-symbol")
+            .child(
+                svg::path()
+                    .attr("d", icon.data)
+            )
     }
 }
